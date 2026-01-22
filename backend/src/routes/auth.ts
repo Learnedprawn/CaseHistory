@@ -17,7 +17,7 @@ function generateToken(userId: string, email: string, role: string) {
 }
 
 // Signup
-router.post('/signup', validateSignup, handleValidationErrors, async (req, res: Response) => {
+router.post('/signup', validateSignup, handleValidationErrors, async (req: any, res: Response) => {
   try {
     const { email, password, role, firstName, lastName, clinicName, licenseNumber }: SignupBody = req.body;
 
@@ -90,7 +90,7 @@ router.post('/signup', validateSignup, handleValidationErrors, async (req, res: 
 });
 
 // Login
-router.post('/login', validateLogin, handleValidationErrors, async (req, res: Response) => {
+router.post('/login', validateLogin, handleValidationErrors, async (req: any, res: Response) => {
   try {
     const { email, password }: LoginBody = req.body;
 
