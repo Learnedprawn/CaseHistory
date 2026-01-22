@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         String   // "CLIENT" or "PROVIDER"
+  createdAt    DateTime @default(now())
+
+  clientProfile  ClientProfile?
+  providerProfile ProviderProfile?
+  caseHistoriesAsClient   CaseHistory[] @relation("ClientCases")
+  caseHistoriesAsProvider CaseHistory[] @relation("ProviderCases")
+
+  @@index([email])
+}
+
+model ClientProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  firstName String?
+  lastName  String?
+  dateOfBirth DateTime?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ProviderProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  firstName String?
+  lastName  String?
+  clinicName String?
+  licenseNumber String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CaseHistory {
+  id        String   @id @default(uuid())
+  clientId  String
+  providerId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client   User @relation("ClientCases", fields: [clientId], references: [id], onDelete: Cascade)
+  provider User @relation("ProviderCases", fields: [providerId], references: [id], onDelete: Cascade)
+  intakeForm IntakeForm?
+  sessionLogs SessionLog[]
+
+  @@index([clientId])
+  @@index([providerId])
+}
+
+model IntakeForm {
+  id                   String   @id @default(uuid())
+  caseHistoryId        String   @unique
+  presentingProblem    String?
+  medicalHistory       String?
+  mentalHealthHistory  String?
+  medications          String?
+  consentAcknowledged  Boolean  @default(false)
+  freeTextNotes        String?
+  providerNotes        String?  // Only providers can edit this
+  submittedAt          DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  caseHistory CaseHistory @relation(fields: [caseHistoryId], references: [id], onDelete: Cascade)
+
+  @@index([caseHistoryId])
+}
+
+model SessionLog {
+  id                   String   @id @default(uuid())
+  caseHistoryId        String
+  providerId           String
+  clientId             String
+  sessionDate         DateTime @default(now())
+  presentingTopics    String?
+  therapistObservations String?
+  clientAffect         String?
+  interventionsUsed   String?
+  progressNotes       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  caseHistory CaseHistory @relation(fields: [caseHistoryId], references: [id], onDelete: Cascade)
+
+  @@index([caseHistoryId])
+  @@index([clientId])
+  @@index([providerId])
+  @@index([sessionDate])
+}
